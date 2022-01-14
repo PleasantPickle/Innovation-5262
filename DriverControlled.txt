@@ -1,0 +1,229 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import org.firstinspires.ftc.robotcore.external.Event;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.Blinker;
+import com.qualcomm.robotcore.hardware.Gyroscope;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
+
+//import helperClasses
+import org.firstinspires.ftc.teamcode.helperClasses.Button;
+
+@TeleOp
+
+public class DriverControlled extends LinearOpMode 
+{
+    private ElapsedTime runtime = new ElapsedTime();
+    
+    /* Declare Controller Buttons */
+    private Button buttonY; // used to flip intake motor direction
+    private Button buttonX; // used to lower and raise the gate of the delivery basket
+    // right trigger is used to extend linear slide
+    // left trigger is used to retract linear slide
+    // a button is used to spin the carouselSpinner
+    
+    /* Declare Servos and Servo Parameters */
+    public Servo arm;
+    public final static double ARM_HOME = 0.0; // Starting position for Servo Arm
+    public final static double ARM_MIN_RANGE = 0.0; // Smallest number value allowed for servo poition (0 degrees)
+    public final static double ARM_MAX_RANGE = 0.5; // Largest number value allowed for servo poition (90 degrees)
+
+    /* Drive Train Fields */
+    private DcMotor leftBack; //Motor 3
+    private DcMotor leftFront; //Motor 1
+    private DcMotor rightBack; //Motor 2
+    private DcMotor rightFront; //Motor 0
+    
+    /* Intake Fields */
+    private DcMotor intake;
+    //instantiate variable to keep track of the intake motor's direction
+    //while intakeDirectionForward equals false, the intake spins in REVERSE
+    private boolean intakeDirectionForward = true;
+    
+    /* Deliver Fields */
+    private DcMotor linearSlide;
+    private DcMotor carouselSpinner;
+    
+    public void runOpMode() 
+    {
+        // The robot system is all configured (runOpMode configures robot system)
+        telemetry.addData("Status", "Initialized");
+        telemetry.update();
+        
+        // Wait for the game to start (driver presses PLAY)
+        waitForStart();
+        runtime.reset();
+        
+        /* Initialize the hardware variables */
+        // Drive Train
+        leftBack  = hardwareMap.get(DcMotor.class, "leftBack");
+        leftFront  = hardwareMap.get(DcMotor.class, "leftFront");
+        rightBack = hardwareMap.get(DcMotor.class, "rightBack");
+        rightFront = hardwareMap.get(DcMotor.class, "rightFront");
+        
+        // Intake
+        intake = hardwareMap.get(DcMotor.class, "intake");
+        // instantiate button (do this here and not in loop because when done in loop the Button fields are overwritten)
+        buttonY = new Button(gamepad1.y);
+        
+        // Delivery
+        // for linearSlide motor
+        linearSlide = hardwareMap.get(DcMotor.class, "linearSlide");
+        buttonX = new Button(gamepad1.x);
+        // for the delivery basket's gate's servo
+        arm = hardwareMap.get(Servo.class, "gateArm");
+        arm.setPosition(ARM_HOME);
+        // for the carousel spinner
+        carouselSpinner = hardwareMap.get(DcMotor.class, "carouselSpinner");
+        
+        /* Set Motor Direction */
+        // Most robots need the motor on one side to be reversed to drive forward
+        // Reverse the motor that runs backwards when connected directly to the battery
+        // Drive Train
+        leftBack.setDirection(DcMotor.Direction.FORWARD);
+        leftFront.setDirection(DcMotor.Direction.FORWARD);
+        rightBack.setDirection(DcMotor.Direction.REVERSE);
+        rightFront.setDirection(DcMotor.Direction.REVERSE);
+        
+        // Intake
+        intake.setDirection(DcMotor.Direction.REVERSE);
+        
+        // Delivery
+        linearSlide.setDirection(DcMotor.Direction.REVERSE);
+        carouselSpinner.setDirection(DcMotor.Direction.REVERSE);
+        
+        
+        /* Set Zero Power Behavior */
+        //set the motors to automatically stop when the joystick has a value of zero
+        //BREAK set motors to stop immediately, FLOAT sets motors to come to a slow stop
+        
+        // Drive Train
+        leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        
+        // Intake
+        intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        
+        // Delivery
+        linearSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        carouselSpinner.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        
+        
+        // run until the end of the match (driver presses STOP)
+        while (opModeIsActive()) 
+        {
+            /* Drive Train */
+            // Setup a variable for each drive wheel to save power level for telemetry
+            double leftBackPower;
+            double leftFrontPower;
+            double rightBackPower;
+            double rightFrontPower;
+          
+            // POV Mode uses left stick to go forward, and right stick to turn.
+            // - This uses basic math to combine motions and is easier to drive straight.
+            //double drive = -gamepad1.left_stick_y;
+            //double turn  =  gamepad1.right_stick_x;
+            //double leftSidePower    = Range.clip(drive + turn, -1.0, 1.0) ;
+            //double rightSidePower   = Range.clip(drive - turn, -1.0, 1.0) ;
+            
+            //left only stick drive and turn
+            //double drive = -gamepad1.left_stick_y;
+            //double turn  =  gamepad1.left_stick_x;
+            //double leftSidePower    = Range.clip(drive + turn, -1.0, 1.0) ;
+            //double rightSidePower   = Range.clip(drive - turn, -1.0, 1.0) ;
+            
+            // Tank Mode uses one stick to control each wheel.
+            // - This requires no math, but it is hard to drive forward slowly and keep straight.
+            double leftSidePower  = -gamepad1.left_stick_y ;
+            double rightSidePower = -gamepad1.right_stick_y ;
+         
+            // Send calculated power to wheels
+            leftBack.setPower(leftSidePower);
+            leftFront.setPower(leftSidePower);
+            rightBack.setPower(rightSidePower);
+            rightFront.setPower(rightSidePower);
+            
+            
+            /* Intake */
+            // Set the active intake motor to be always on when the right bumper is down
+            if (gamepad1.right_bumper)
+            {
+                intake.setPower(1.0);
+            }
+            else
+            {
+                intake.setPower(0.0);
+            }
+            //if the y button was pressed and released, this also updates the buttons status
+            if (buttonY.eventHappened(gamepad1.y) == Button.EventType.RELEASED)
+            {
+                if (intakeDirectionForward) //if intake is going forward, set it to reverse
+                {
+                    //update motor direction
+                    intake.setDirection(DcMotor.Direction.FORWARD);
+                    //update variable
+                    intakeDirectionForward = false;
+                }
+                else //if intake is going reverse, set it to forward
+                {
+                    //update motor direction
+                    intake.setDirection(DcMotor.Direction.REVERSE);
+                    //update variable
+                    intakeDirectionForward = true;
+                }
+            }
+            // for servos if (getDirection() == servo1.setDirection(Servo.Direction.FORWARD)
+            
+            /* Delivery */
+            // store the linear slide's power and make sure the power is between 0 and 1, if not, fix it
+            double linearSlidePower = Range.clip(gamepad1.right_trigger + gamepad1.left_trigger, 0.0, 1.0);
+            
+            // if right trigger is down, extend linear slide
+            if (gamepad1.right_trigger > 0.0)
+            {
+                linearSlide.setDirection(DcMotor.Direction.FORWARD);
+            }
+            // if left trigger is down, retract linear slide
+            else if (gamepad1.left_trigger > 0.0)
+            {
+                linearSlide.setDirection(DcMotor.Direction.REVERSE);
+            }
+            linearSlide.setPower(linearSlidePower);
+            
+            // Carousel Spinner
+            if (gamepad1.a) // if a is down
+            {
+                carouselSpinner.setPower(0.4); // spin motor
+            }
+            else // if a is up
+            {
+                carouselSpinner.setPower(0.0); // stop motor
+            }
+            
+            // open and close delivery basket's gate
+            Button.EventType buttonXEvent = buttonX.eventHappened(gamepad1.x); // save button event;
+            if (buttonXEvent == Button.EventType.PRESSED)
+            {
+                arm.setPosition(ARM_MAX_RANGE);
+            }
+            else if (buttonXEvent == Button.EventType.RELEASED)
+            {
+                arm.setPosition(ARM_MIN_RANGE);
+            }
+                
+            // Show the elapsed game time
+            telemetry.addData("Status", "Run Time: " + runtime.toString());
+            //telemetry.addData("right_trigger", gamepad1.right_trigger);
+            telemetry.update();
+        }
+    }
+}

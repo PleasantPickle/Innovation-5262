@@ -1,0 +1,180 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.Blinker;
+import com.qualcomm.robotcore.hardware.Gyroscope;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
+
+@TeleOp(name="Turning test", group="Linear Opmode")
+
+
+public class TurnTest extends LinearOpMode {
+
+    // Declare OpMode members.
+    private ElapsedTime runtime = new ElapsedTime();
+    private DcMotor leftBack; //Motor 3
+    private DcMotor leftFront; //Motor 1
+    private DcMotor rightBack; //Motor 2
+    private DcMotor rightFront; //Motor 0
+    private DcMotor linearSlide;
+    private DcMotor intake;
+    
+
+    
+    //private Blinker expansion_Hub_1 = expansion_Hub_1 = hardwareMap.get(Blinker.class, "Expansion Hub 1");
+    //private Gyroscope imu hardwareMap.get(Gyroscope.class, "imu");
+    //private DcMotor motorTest = hardwareMap.get(DcMotor.class, "motorTest");
+
+    @Override
+    public void runOpMode() {
+        telemetry.addData("Status", "Initialized");
+        telemetry.update();
+
+        // Initialize the hardware variables. Note that the strings used here as parameters
+        // to 'get' must correspond to the names assigned during the robot configuration
+        // step (using the FTC Robot Controller app on the phone).
+        leftBack  = hardwareMap.get(DcMotor.class, "leftBack");
+        leftFront  = hardwareMap.get(DcMotor.class, "leftFront");
+        rightBack = hardwareMap.get(DcMotor.class, "rightBack");
+        rightFront = hardwareMap.get(DcMotor.class, "rightFront");
+        
+        //linearSlide = hardwareMap.get(DcMotor.class, "rightFront");
+        
+        //intake = hardwareMap.get(DcMotor.class, "rightFront");
+
+        // Most robots need the motor on one side to be reversed to drive forward
+        // Reverse the motor that runs backwards when connected directly to the battery
+        leftBack.setDirection(DcMotor.Direction.FORWARD);
+        leftFront.setDirection(DcMotor.Direction.FORWARD);
+        rightBack.setDirection(DcMotor.Direction.REVERSE);
+        rightFront.setDirection(DcMotor.Direction.REVERSE);
+        
+        //linearSlide.setDirection(DcMotor.Direction.REVERSE);
+        
+        //instantiate variable to keep track of the intake motor's direction
+        //while intakeDirectionForward equals false, the intake spins in REVERSE
+        //boolean intakeDirectionForward = true;
+        //intake.setDirection(DcMotor.Direction.FORWARD);
+        
+        //set the motors to automatically stop when the joystick has a value of zero
+        //BREAK set motors to stop immediately, FLOAT sets motors to come to a slow stop
+        leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        
+        //linearSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        
+        //intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+
+        // Wait for the game to start (driver presses PLAY)
+        waitForStart();
+        runtime.reset();
+
+        // run until the end of the match (driver presses STOP)
+        while (opModeIsActive()) {
+
+            // Setup a variable for each drive wheel to save power level for telemetry
+            double leftBackPower;
+            double leftFrontPower;
+            double rightBackPower;
+            double rightFrontPower;
+
+            // Choose to drive using either Tank Mode, or POV Mode
+            // Comment out the method that's not used.  The default below is POV.
+
+            // POV Mode uses left stick to go forward, and right stick to turn.
+            // - This uses basic math to combine motions and is easier to drive straight.
+            //double drive = -gamepad1.left_stick_y;
+            //double turn  =  gamepad1.right_stick_x;
+            //double leftSidePower    = Range.clip(drive + turn, -1.0, 1.0) ;
+            //double rightSidePower   = Range.clip(drive - turn, -1.0, 1.0) ;
+            
+            
+            //left only stick drive and turn
+            double drive = -gamepad1.left_stick_y;
+            double turn  =  gamepad1.left_stick_x;
+            double leftSidePower    = Range.clip(drive + turn, -1.0, 1.0) ;
+            double rightSidePower   = Range.clip(drive - turn, -1.0, 1.0) ;
+
+            // Tank Mode uses one stick to control each wheel.
+            // - This requires no math, but it is hard to drive forward slowly and keep straight.
+            //double leftSidePower  = -gamepad1.left_stick_y ;
+            //double rightSidePower = -gamepad1.right_stick_y ;
+
+            // Send calculated power to wheels
+            leftBack.setPower(leftSidePower);
+            leftFront.setPower(leftSidePower);
+            rightBack.setPower(rightSidePower);
+            rightFront.setPower(rightSidePower);
+            
+            /*
+            // Set the active intake motor to be always on
+            intake.setPower(1.0);
+            if (pressed(gamepad1.y) == "released") //if the y button was pressed and released
+            {
+                if (intakeDirectionForward) //if intake is going forward, set it to reverse
+                {
+                    //update motor direction
+                    linearSlide.setDirection(DcMotor.Direction.REVERSE);
+                    //update variable
+                    intakeDirectionForward = false;
+                }
+                else //if intake is going reverse, set it to forward
+                {
+                    //update motor direction
+                    linearSlide.setDirection(DcMotor.Direction.FORWARD);
+                    //update variable
+                    intakeDirectionForward = true;
+                }
+            }
+            */
+
+            // Show the elapsed game time and wheel power.
+            telemetry.addData("Status", "Run Time: " + runtime.toString());
+            telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftSidePower, rightSidePower);
+            telemetry.update();
+        }
+        
+        //public void toggleIntake()
+        //{
+         //   
+        //}
+    }
+    
+    //private boolean pressed(boolean button)
+    //{
+    //    /** 
+    //     * Status:
+    //     * down = the button is being pressed
+    //     * up = the button is not being pressed
+    //     * released = the button went from down to up
+    //     */
+    //    
+    //    // if the button is down and it was up, update the status to down
+    //    if (button == true && toggleStatus == "up")
+    //    {
+    //       toggleStatus == "down";
+    //    }
+    //    
+    //    // if the button is up and it was down, update the status to released
+    //    else if (button == false && toggleStatus == "down")
+    //    {
+    //        toggleStatus = "released";
+    //    }
+    //    
+    //    // if the status was released, update the status to up
+    //  else if (toggleStatus == "released")
+    //  {
+    //      toggleStatus = "up";
+    //      //call the flip method
+    //  }
+    //   //how do i keep track of status?
+    //    return toggleStatus;
+    //}
+}

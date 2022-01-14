@@ -1,0 +1,82 @@
+package org.firstinspires.ftc.teamcode;
+
+import java.util.*;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.Blinker;
+import com.qualcomm.robotcore.hardware.Gyroscope;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
+
+@TeleOp
+
+public class Delivery extends LinearOpMode {
+    private ElapsedTime runtime = new ElapsedTime();
+    private DcMotor linearSlide;
+
+    @Override
+    public void runOpMode() {
+    telemetry.addData("Status", "Initialized");
+        telemetry.update();
+
+    int RPM = 152;
+    double millisecondsPerDegree = 1 / RPM * 60 * 1000 / 360; // (minutes / revolution) * (60 seconds / minute) * (1000 milliseconds / second) / (360 degrees / revolution)
+    double degreesToFullLinearSlideExtension = 816.8602;
+    double millisecondsToFullLinearSlideExtension = degreesToFullLinearSlideExtension * millisecondsPerDegree;
+    
+        linearSlide = hardwareMap.get(DcMotor.class, "rightFront");
+        linearSlide.setDirection(DcMotor.Direction.REVERSE);
+        linearSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        
+        // Wait for the game to start (driver presses PLAY)
+        waitForStart();
+    runtime.reset();
+
+        // run until the end of the match (driver presses STOP)
+        while (opModeIsActive()) {
+            telemetry.addData("Status", "Running");
+            telemetry.update();
+
+        //if button y is pressed, rotate motor
+            if (gamepad1.y)
+            {
+                rotateForMilliseconds(millisecondsToFullLinearSlideExtension);
+            }
+
+        }
+    }
+    public void rotateForMilliseconds(double durationInMilliseconds)
+    {
+        /*
+        StopWatch timer = new StopWatch();
+        timer.start();
+        linearSlide.setPower(1.0);
+        while (timer.getTime() < durationInMilliseconds)
+        {
+            //wait
+        }
+        timer.stop();
+        linearSlide.setPower(0.0);
+        */
+        
+        long start = System.currentTimeMillis();
+        
+    
+    // Power motor
+        linearSlide.setPower(1.0);
+
+    //stay in while loop while the current time minus the start time is less than the time passed in
+        while (System.currentTimeMillis() - start < durationInMilliseconds)
+        {
+            //wait
+        }
+        // Stop motor
+        linearSlide.setPower(0.0);
+        
+        
+        
+    }
+}

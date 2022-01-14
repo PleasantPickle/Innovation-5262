@@ -1,0 +1,91 @@
+/*
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotorController;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+//import helperClasses
+import org.firstinspires.ftc.teamcode.helperClasses.Button;
+
+public class ButtonLinearSlideTest extends LinearOpMode {
+    private DcMotor linearSlide;
+    
+    Button buttonY = new Button(gamepad1.y);
+
+    @Override
+    public void runOpMode() {
+        linearSlide = hardwareMap.get(DcMotor.class, "linearSlide");
+        linearSlide.setDirection(DcMotor.Direction.REVERSE);
+        linearSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        
+        //int TETRIX_TICKS_PER_REV = 1440;
+        //int ANDYMARK_TICKS_PER_REV = 1120;
+
+        telemetry.addData("Status", "Initialized");
+        telemetry.update();
+        // Wait for the game to start (driver presses PLAY)
+        waitForStart();
+
+        // run until the end of the match (driver presses STOP)
+        while (opModeIsActive()) {
+            telemetry.addData("Status", "Running");
+            telemetry.update();
+            
+            // Setup a variable for controller buttons
+            
+            
+            double numberOfRevolutions = 816.8602/360;
+            double numberOfTicksToRevolutions = 1120 * numberOfRevolutions; //also called distance
+            
+            if (buttonY.eventHappened(gamepad1.y) == Button.EventType.RELEASED)
+            {
+                linearSlide.setDirection(DcMotor.Direction.FORWARD);
+                DriveForwardDistance(1, (int)numberOfTicksToRevolutions);
+            }
+            //if (G1YPressed)
+            //{
+            //    linearSlide.setDirection(DcMotor.Direction.REVERSE);
+            //    DriveForwardDistance(1, numberOfTicksToRevolutions);
+           // }
+
+        }
+    }
+    public void DriveForwardDistance(double power, int distance) //distance is the number of counts
+    {
+        // Reset encoders
+        linearSlide.setMode(DcMotorController.RunMode.RESET_ENCODERS);
+        
+        // Set target position
+        linearSlide.setTargetPosition(distance);
+        
+        // Set to RUN_TO_POSITION
+        linearSlide.setMode(DcMotorController.RunMode.RUN_TO_POSITION);
+        
+        // Set drive power
+        DriveForward(power);
+        
+        while(linearSlide.isBusy())
+        {
+            // Wait until target position is reached
+        }
+        
+        // Stop and change modes back to normal
+        StopDriving();
+        linearSlide.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
+    }
+    public void StopDriving()
+    {
+        DriveForward(0);
+    }
+    public void DriveForward(double power)
+    {
+        linearSlide.setPower(power);
+    }
+    
+}
+*/
