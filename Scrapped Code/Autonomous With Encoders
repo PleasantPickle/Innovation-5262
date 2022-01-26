@@ -1,0 +1,167 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.hardware.DcMotorController;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import org.firstinspires.ftc.robotcore.external.Event;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.Blinker;
+import com.qualcomm.robotcore.hardware.Gyroscope;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
+
+@Autonomous
+
+public class RedRight extends LinearOpMode
+{
+    private DcMotor leftBack;
+    private DcMotor leftFront;
+    private DcMotor rightBack;
+    private DcMotor rightFront;
+    
+    final int TETRIX_TICKS_PER_REV = 1440;
+    final int ANDYMARK_TICKS_PER_REV = 1120;
+    
+    // NOTE: ALL DISTANCES DONE IN INCHES
+    final double robotDiatmeter = 20.0; // inches
+    final double wheelDiatmeter = 3.5; // inches
+    
+    
+    @Override
+    public void runOpMode() // throws InterruptedException
+    {
+        // Initialize Motors
+        leftBack  = hardwareMap.get(DcMotor.class, "leftBack");
+        leftFront  = hardwareMap.get(DcMotor.class, "leftFront");
+        rightBack = hardwareMap.get(DcMotor.class, "rightBack");
+        rightFront = hardwareMap.get(DcMotor.class, "rightFront");
+        
+        // Run Code
+        waitForStart();
+        if (opModeIsActive())
+        {
+            // Turn counter clockwise 90 degrees
+            turn(robotDiameter, wheelDiameter, 90, true, ANDYMARK_TICKS_PER_REV);
+            // Turn clockwise 90 degrees
+            //turn(robotDiameter, wheelDiameter, 90, false, ANDYMARK_TICKS_PER_REV);
+            // Move forward 12 inches
+            //drive(12, wheelDiameter, true, ANDYMARK_TICKS_PER_REV);
+            // Move backward 12 inches
+            //drive(12, wheelDiameter, false, ANDYMARK_TICKS_PER_REV);
+        }
+    }
+    
+    // Metods
+    public void turn(double robotDiameter, double wheelDiameter, double degreesToTurn, boolean turnCounterClockWise, int ticksPerFullMotorRevolution)
+    {
+        // Calculate fractional number of times the wheel will need to make a full 360 degree rotation in order to cover the length of the robot's circumference
+        double numberWheelRotationsToCoverRobotCircumference = robotDiameter / wheelDiameter;
+        
+        // Calculate number of times to rotate the motor for a specific number of degrees
+        double numberOfRotations = numberWheelRotationsToCoverRobotCircumference * degreesToTurn / 360;
+    
+        // Calculate number of ticks the encoder will need to count to
+        int ticksToDesiredNumberOfRotations = (int)(numberOfRotations * ticksPerFullMotorRevolution);
+    
+        // Set motor direction
+        if (turnCounterClockWise) // rotate robot in place turning it left
+        {
+            // Set right side motors to spin moving the robot up
+            rightFront.setDirection(DCMotor.Direction.REVERSE);
+            rightBack.setDirection(DCMotor.Direction.REVERSE);
+            // Set left side motors to spin moving the robot back
+            leftFront.setDirection(DCMotor.Direction.REVERSE);
+            leftBack.setDirection(DCMotor.Direction.REVERSE);
+        }
+        else // rotate robot in place turning it right
+        {
+            // Set right side motors to spin moving the robot back
+            rightFront.setDirection(DCMotor.Direction.FORWARD);
+            rightBack.setDirection(DCMotor.Direction.FORWARD);
+            // Set left side motors to spin moving the robot up
+            leftFront.setDirection(DCMotor.Direction.FORWARD);
+            leftBack.setDirection(DCMotor.Direction.FORWARD);
+        }
+    
+        driveToPosition(ticksToDesiredNumberOfRotations);
+    
+    }
+    public void drive(double distance, double wheelDiameter, boolean moveUp, int ticksPerFullMotorRevolution)
+    {
+        // Calculate fractional number of times the wheel will need to make a full 360 degree rotation in order to move the desired length
+        double numberWheelRotationsToMoveDesiredLength = distance / wheelDiameter;
+    
+        // Calculate number of ticks the encoder will need to count to
+        int ticksToDesiredNumberOfRotations = (int)(numberWheelRotationsToMoveDesiredLength * ticksPerFullMotorRevolution);
+        
+        // Set motor direction
+        if (moveUp) // move robot up
+        {
+            // Set right side motors to spin moving the robot up
+            rightFront.setDirection(DCMotor.Direction.REVERSE);
+            rightBack.setDirection(DCMotor.Direction.REVERSE);
+            // Set left side motors to spin moving the robot up
+            leftFront.setDirection(DCMotor.Direction.FORWARD);
+            leftBack.setDirection(DCMotor.Direction.FORWARD);
+        }
+        else // move robot back
+        {
+            // Set right side motors to spin moving the robot back
+            rightFront.setDirection(DCMotor.Direction.FORWARD);
+            rightBack.setDirection(DCMotor.Direction.FORWARD);
+            // Set left side motors to spin moving the robot back
+            leftFront.setDirection(DCMotor.Direction.REVERSE);
+            leftBack.setDirection(DCMotor.Direction.REVERSE);
+        }
+        driveToPosition(ticksToDesiredNumberOfRotations);
+    }
+    public void driveToPosition(int ticksToDesiredNumberOfRotations)
+    {
+        // Reset encoders
+        rightFront.setMode(DcMotorController.RunMode.RESET_ENCODERS);
+        rightBack.setMode(DcMotorController.RunMode.RESET_ENCODERS);
+        leftFront.setMode(DcMotorController.RunMode.RESET_ENCODERS);
+        leftBack.setMode(DcMotorController.RunMode.RESET_ENCODERS);
+    
+        // Set target position
+        rightFront.setTargetPosition(ticksToDesiredNumberOfRotations);
+        rightBack.setTargetPosition(ticksToDesiredNumberOfRotations);
+        leftFront.setTargetPosition(ticksToDesiredNumberOfRotations);
+        leftBack.setTargetPosition(ticksToDesiredNumberOfRotations);
+    
+        // Set to RUN_TO_POSITION
+        rightFront.setMode(DcMotorController.RunMode.RUN_TO_POSITION);
+        rightBack.setMode(DcMotorController.RunMode.RUN_TO_POSITION);
+        leftFront.setMode(DcMotorController.RunMode.RUN_TO_POSITION);
+        leftBack.setMode(DcMotorController.RunMode.RUN_TO_POSITION);
+    
+        // Set drive power
+        setDrivingPower(1.0);
+    
+        while (rightFront.isBusy() || rightBack.isBusy() || leftFront.isBusy() || leftBack.isBusy()) // while any drivetrain motor is busy
+        {
+            // Wait until target posittions have been reached
+        }
+    
+        // Stop robot
+        setDrivingPower(0.0);
+    
+        // Change modes back to normal
+        rightFront.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
+        rightBack.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
+        leftFront.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
+        leftBack.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
+    }
+    public void setDrivingPower(double newDrivingPower)
+    {
+        rightFront.setPower(newDrivingPower);
+        rightBack.setPower(newDrivingPower);
+        leftFront.setPower(newDrivingPower);
+        leftBack.setPower(newDrivingPower);
+    }
+}
