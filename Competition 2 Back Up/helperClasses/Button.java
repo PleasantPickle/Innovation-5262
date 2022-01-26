@@ -1,0 +1,49 @@
+package org.firstinspires.ftc.teamcode.helperClasses;
+
+public class Button 
+{
+    // what happened to the button
+    public enum EventType
+    {
+        PRESSED,
+        RELEASED,
+        UNCHANGED
+    }
+    
+    // instantiate constants for possible states of the button
+    public final static boolean UP = false;
+    public final static boolean DOWN = true;
+    
+    boolean prevStatus; // what WAS the state of the button?
+    
+    public Button(boolean currentStatus)
+    {
+        this.prevStatus = currentStatus; // Save the current status of the button when instantiated
+    }
+    
+    // method figures out the type of event that happened
+    public EventType eventHappened(boolean currentStatus)
+    {
+        // NOTE: knowing was the button and what the button is now can help you determine the change
+        
+        // when the button was UP and is now DOWN, the button was pressed
+        if (prevStatus == UP && currentStatus == DOWN)
+        {
+            prevStatus = DOWN;
+            return EventType.PRESSED;
+        }
+        
+        // when the button was DOWN and is now UP, the button was released
+        else if (prevStatus == DOWN && currentStatus == UP)
+        {
+            prevStatus = UP;
+            return EventType.RELEASED;
+        }
+        
+        // if nothing changed, the button was unchanged
+        else
+        {
+            return EventType.UNCHANGED;
+        }
+    }
+}
